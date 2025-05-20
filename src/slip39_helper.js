@@ -714,6 +714,11 @@ function validateMnemonic(mnemonic) {
   }
 }
 
+function getThresholdForMnemonic(mnemonic) {
+  const decoded = decodeMnemonic(mnemonic);
+  return decoded.groupThreshold;
+}
+
 function groupPrefix(
   identifier,
   extendableBackupFlag,
@@ -1881,6 +1886,7 @@ exports = module.exports = {
   generateIdentifier,
   encodeMnemonic,
   validateMnemonic,
+  getThresholdForMnemonic,
   splitSecret,
   combineMnemonics,
   crypt,
