@@ -180,8 +180,8 @@ class Slip39 {
     return slipHelper.validateMnemonic(mnemonic);
   }
 
-  static getThresholdForMnemonic(mnemonic) {
-    return slipHelper.getThresholdForMnemonic(mnemonic);
+  static getThresholdsForMnemonic(mnemonic) {
+    return slipHelper.getThresholdsForMnemonic(mnemonic);
   }
 
   fromPath(path) {
