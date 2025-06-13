@@ -1,8 +1,9 @@
 const assert = require("assert");
 const slip39 = require("../src/slip39");
+const { slip39EncodeHex, slip39DecodeHex } = require("../src/slip39_helper");
 
 const MASTERSECRET = "ABCDEFGHIJKLMNOP";
-const MS = MASTERSECRET.slip39EncodeHex();
+const MS = slip39EncodeHex(MASTERSECRET);
 const PASSPHRASE = "TREZOR";
 const ONE_GROUP = [[5, 7]];
 
@@ -61,8 +62,8 @@ describe("Basic Tests", () => {
       it(description, () => {
         let shares = item.map((idx) => mnemonics[idx]);
         assert(
-          MS.slip39DecodeHex() ===
-            slip39.recoverSecret(shares, PASSPHRASE).slip39DecodeHex(),
+          slip39DecodeHex(MS) ===
+          slip39DecodeHex(slip39.recoverSecret(shares, PASSPHRASE)),
         );
       });
     });
@@ -74,22 +75,21 @@ describe("Basic Tests", () => {
 
     it("should return valid mastersecret when user submits valid passphrase", () => {
       assert(
-        MS.slip39DecodeHex() ===
-          slip39
-            .recoverSecret(mnemonics.slice(0, 5), PASSPHRASE)
-            .slip39DecodeHex(),
+        slip39DecodeHex(MS) ===
+        slip39DecodeHex(slip39
+            .recoverSecret(mnemonics.slice(0, 5), PASSPHRASE)),
       );
     });
     it("should NOT return valid mastersecret when user submits invalid passphrse", () => {
       assert(
-        MS.slip39DecodeHex() !==
-          slip39.recoverSecret(mnemonics.slice(0, 5)).slip39DecodeHex(),
+        slip39DecodeHex(MS) !==
+        slip39DecodeHex(slip39.recoverSecret(mnemonics.slice(0, 5))),
       );
     });
     it("should return valid mastersecret when user does not submit passphrase", () => {
       assert(
-        MS.slip39DecodeHex() ===
-          slip39.recoverSecret(nopwMnemonics.slice(0, 5)).slip39DecodeHex(),
+        slip39DecodeHex(MS) ===
+        slip39DecodeHex(slip39.recoverSecret(nopwMnemonics.slice(0, 5))),
       );
     });
   });
@@ -105,17 +105,16 @@ describe("Basic Tests", () => {
 
     it("should return valid mastersecret when user apply valid iteration exponent", () => {
       assert(
-        MS.slip39DecodeHex() ===
-          slip39
+        slip39DecodeHex(MS) ===
+        slip39DecodeHex(slip39
             .recoverSecret(slip1.fromPath("r/0").mnemonics)
-            .slip39DecodeHex(),
+        ),
       );
 
       assert(
-        MS.slip39DecodeHex() ===
-          slip39
-            .recoverSecret(slip2.fromPath("r/0").mnemonics)
-            .slip39DecodeHex(),
+        slip39DecodeHex(MS) ===
+        slip39DecodeHex(slip39
+            .recoverSecret(slip2.fromPath("r/0").mnemonics)),
       );
     });
     /**
@@ -182,8 +181,8 @@ describe("Group Sharing Tests", () => {
         .concat(group3Mnemonic);
 
       assert(
-        MS.slip39DecodeHex() ===
-          slip39.recoverSecret(mnemonics).slip39DecodeHex(),
+        slip39DecodeHex(MS) ===
+        slip39DecodeHex(slip39.recoverSecret(mnemonics)),
       );
     });
     it("TODO: Should NOT return the valid master secret when one complete group and one incomplete group out of two groups required", () => {

@@ -1,7 +1,7 @@
 /* eslint-disable no-array-constructor */
-let crypto;
+let _crypto;
 try {
-  crypto = require("crypto");
+  _crypto = require("crypto");
 } catch (err) {
   throw new Error("crypto support must be enabled");
 }
@@ -75,44 +75,44 @@ const SECRET_INDEX = 255;
 //
 // Helper functions for SLIP39 implementation.
 //
-String.prototype.slip39EncodeHex = function () {
+const slip39EncodeHex = function (str) {
   let bytes = [];
-  for (let i = 0; i < this.length; ++i) {
-    bytes.push(this.charCodeAt(i));
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
   }
   return bytes;
 };
 
-Array.prototype.slip39DecodeHex = function () {
-  let str = [];
-  const hex = this.toString().split(",");
+const slip39DecodeHex = function (str) {
+  let _str = [];
+  const hex = str.toString().split(",");
   for (let i = 0; i < hex.length; i++) {
-    str.push(String.fromCharCode(hex[i]));
+    _str.push(String.fromCharCode(hex[i]));
   }
-  return str.toString().replace(/,/g, "");
+  return _str.toString().replace(/,/g, "");
 };
 
-Array.prototype.slip39Generate = function (m, v = (_) => _) {
-  let n = m || this.length;
+const slip39Generate = function (arr, m, v = (_) => _) {
+  let n = m || arr.length;
   for (let i = 0; i < n; i++) {
-    this[i] = v(i);
+    arr[i] = v(i);
   }
-  return this;
+  return arr;
 };
 
-Array.prototype.toHexString = function () {
+const toHexString = function (arr) {
   return Array.prototype.map
-    .call(this, function (byte) {
+    .call(arr, function (byte) {
       return ("0" + (byte & 0xff).toString(16)).slice(-2);
     })
     .join("");
 };
 
-Array.prototype.toByteArray = function (hexString) {
+const toByteArray = function (arr, hexString) {
   for (let i = 0; i < hexString.length; i = i + 2) {
-    this.push(parseInt(hexString.substr(i, 2), 16));
+    arr.push(parseInt(hexString.substr(i, 2), 16));
   }
-  return this;
+  return arr;
 };
 
 const BIGINT_WORD_BITS = BigInt(8);
@@ -168,7 +168,7 @@ function bitsToWords(n) {
 // Returns a randomly generated integer in the range 0, ... , 2**ID_LENGTH_BITS - 1.
 //
 function randomBytes(length = 32) {
-  let randoms = crypto.randomBytes(length);
+  let randoms = _crypto.randomBytes(length);
   return Array.prototype.slice.call(randoms, 0);
 }
 
@@ -180,7 +180,7 @@ function roundFunction(round, passphrase, exp, salt, secret) {
   const roundedPhrase = [round].concat(passphrase);
   const count = (ITERATION_COUNT << exp) / ROUND_COUNT;
 
-  const key = crypto.pbkdf2Sync(
+  const key = _crypto.pbkdf2Sync(
     Buffer.from(roundedPhrase),
     Buffer.from(saltedSecret),
     count,
@@ -208,11 +208,11 @@ function crypt(
   let IL = masterSecret.slice().slice(0, masterSecret.length / 2);
   let IR = masterSecret.slice().slice(masterSecret.length / 2);
 
-  const pwd = passphrase.slip39EncodeHex();
+  const pwd = slip39EncodeHex(passphrase);
 
   const salt = getSalt(identifier, extendableBackupFlag);
 
-  let range = Array().slip39Generate(ROUND_COUNT);
+  let range = slip39Generate([],ROUND_COUNT);
   range = encrypt ? range : range.reverse();
 
   range.forEach((round) => {
@@ -225,7 +225,7 @@ function crypt(
 }
 
 function createDigest(randomData, sharedSecret) {
-  const hmac = crypto.createHmac("sha256", Buffer.from(randomData));
+  const hmac = _crypto.createHmac("sha256", Buffer.from(randomData));
 
   hmac.update(Buffer.from(sharedSecret));
 
@@ -254,7 +254,7 @@ function splitSecret(threshold, shareCount, sharedSecret) {
   }
   //  If the threshold is 1, then the digest of the shared secret is not used.
   if (threshold === 1) {
-    return Array().slip39Generate(shareCount, () => sharedSecret);
+    return slip39Generate([], shareCount, () => sharedSecret);
   }
 
   const randomShareCount = threshold - 2;
@@ -265,7 +265,7 @@ function splitSecret(threshold, shareCount, sharedSecret) {
   let baseShares = new Map();
   let shares = [];
   if (randomShareCount) {
-    shares = Array().slip39Generate(randomShareCount, () =>
+    shares = slip39Generate([], randomShareCount, () =>
       randomBytes(sharedSecret.length),
     );
     shares.forEach((item, idx) => {
@@ -302,14 +302,14 @@ function xor(a, b) {
       `Invalid padding in mnemonic or insufficient length of mnemonics (${a.length} or ${b.length})`,
     );
   }
-  return Array().slip39Generate(a.length, (i) => a[i] ^ b[i]);
+  return slip39Generate([], a.length, (i) => a[i] ^ b[i]);
 }
 
 function getSalt(identifier, extendableBackupFlag) {
   if (extendableBackupFlag) {
     return [];
   } else {
-    const salt = CUSTOMIZATION_STRING_NON_EXTENDABLE.slip39EncodeHex();
+    const salt = slip39EncodeHex(CUSTOMIZATION_STRING_NON_EXTENDABLE);
     return salt.concat(identifier);
   }
 }
@@ -340,7 +340,8 @@ function interpolate(shares, x) {
     logProd = logProd + LOG_TABLE[k ^ x];
   });
 
-  let results = Array().slip39Generate(
+  let results = slip39Generate(
+    [],
     sharesValueLengths.values().next().value,
     () => 0,
   );
@@ -400,13 +401,11 @@ function get_customization_string(extendableBackupFlag) {
 }
 
 function rs1024CreateChecksum(data, extendableBackupFlag) {
-  const values = get_customization_string(extendableBackupFlag)
-    .slip39EncodeHex()
+  const values = slip39EncodeHex(get_customization_string(extendableBackupFlag))
     .concat(data)
-    .concat(Array().slip39Generate(CHECKSUM_WORDS_LENGTH, () => 0));
+    .concat(slip39Generate([], CHECKSUM_WORDS_LENGTH, () => 0));
   const polymod = rs1024Polymod(values) ^ 1;
-  const result = Array()
-    .slip39Generate(CHECKSUM_WORDS_LENGTH, (i) => (polymod >> (10 * i)) & 1023)
+  const result = slip39Generate([], CHECKSUM_WORDS_LENGTH, (i) => (polymod >> (10 * i)) & 1023)
     .reverse();
 
   return result;
@@ -415,8 +414,7 @@ function rs1024CreateChecksum(data, extendableBackupFlag) {
 function rs1024VerifyChecksum(data, extendableBackupFlag) {
   return (
     rs1024Polymod(
-      get_customization_string(extendableBackupFlag)
-        .slip39EncodeHex()
+      slip39EncodeHex(get_customization_string(extendableBackupFlag))
         .concat(data),
     ) === 1
   );
@@ -440,7 +438,7 @@ function intFromIndices(indices) {
 //
 function intToIndices(value, length, bits) {
   const mask = BigInt((1 << bits) - 1);
-  const result = Array().slip39Generate(length, (i) =>
+  const result = slip39Generate([], length, (i) =>
     parseInt((value >> (BigInt(i) * BigInt(bits))) & mask, 10),
   );
   return result.reverse();
@@ -714,12 +712,9 @@ function validateMnemonic(mnemonic) {
   }
 }
 
-function getThresholdsForMnemonic(mnemonic) {
+function getThresholdForMnemonic(mnemonic) {
   const decoded = decodeMnemonic(mnemonic);
-  return {
-    groupThreshold: decoded.groupThreshold,
-    memberThreshold: decoded.memberThreshold,
-  };
+  return decoded.groupThreshold;
 }
 
 function groupPrefix(
@@ -1889,10 +1884,15 @@ exports = module.exports = {
   generateIdentifier,
   encodeMnemonic,
   validateMnemonic,
-  getThresholdsForMnemonic,
+  getThresholdForMnemonic,
   splitSecret,
   combineMnemonics,
   crypt,
   bitsToBytes,
   WORD_LIST,
+  slip39EncodeHex,
+  slip39DecodeHex,
+  slip39Generate,
+  toHexString,
+  toByteArray,
 };
