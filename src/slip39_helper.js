@@ -712,9 +712,12 @@ function validateMnemonic(mnemonic) {
   }
 }
 
-function getThresholdForMnemonic(mnemonic) {
-  const decoded = decodeMnemonic(mnemonic);
-  return decoded.groupThreshold;
+function getThresholdsForMnemonic(mnemonic) {
+  const decoded = decodeMnemonic(mnemonic)
+  return {
+    groupThreshold: decoded.groupThreshold,
+    memberThreshold: decoded.memberThreshold,
+  };
 }
 
 function groupPrefix(
@@ -1884,7 +1887,7 @@ exports = module.exports = {
   generateIdentifier,
   encodeMnemonic,
   validateMnemonic,
-  getThresholdForMnemonic,
+  getThresholdsForMnemonic,
   splitSecret,
   combineMnemonics,
   crypt,
