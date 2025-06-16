@@ -3,8 +3,11 @@
   "version": "0.1.9",
   "description": "The javascript implementation of the SLIP39 for Shamir's Secret-Sharing for Mnemonic Codes.",
   "main": "index.js",
+  "types": "src/slip39.d.ts",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "author": "Pal Dorogi \"iLap\" <pal.dorogi@gmail.com>",
   "license": "MIT",
@@ -21,6 +24,8 @@
     "SSS"
   ],
   "devDependencies": {
-    "mocha": "^10.4.0"
+    "mocha": "^10.4.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
   }
 }
