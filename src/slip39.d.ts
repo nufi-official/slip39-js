@@ -50,7 +50,7 @@ declare module "slip39" {
     static validateMnemonic(mnemonic: string): boolean;
     static getThresholdsForMnemonic(mnemonic: string): {
       groupThreshold: number;
-      groupCount: number;
+      memberThreshold: number;
     };
 
     fromPath(path: string): Slip39Node;
