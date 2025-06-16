@@ -3,7 +3,12 @@
   "version": "0.1.9",
   "description": "The javascript implementation of the SLIP39 for Shamir's Secret-Sharing for Mnemonic Codes.",
   "main": "index.js",
-  "types": "src/slip39.d.ts",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src/*"
+  ],
   "scripts": {
     "test": "mocha",
     "build": "tsc",
